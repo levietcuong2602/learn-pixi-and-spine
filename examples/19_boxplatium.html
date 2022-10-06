@@ -1,0 +1,79 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Make a sprite from a texture atlas</title>
+</head>
+<body>
+<script src="../pixi/pixi.min.js"></script>
+<script src="../pixi/pixi-spine.js"></script>
+<script>
+
+//Aliases
+const Application = PIXI.Application,
+    Container = PIXI.Container,
+    loader = PIXI.Loader.shared,
+    resources = PIXI.Loader.shared.resources,
+    TextureCache = PIXI.utils.TextureCache,
+    Sprite = PIXI.Sprite,
+    Rectangle = PIXI.Rectangle;
+
+//Create a Pixi Application
+const app = new Application({ 
+  autoResize: true,
+  resolution: devicePixelRatio 
+  }
+);
+
+//Add the canvas that Pixi automatically created for you to the HTML document
+document.body.appendChild(app.view);
+app.stop()
+
+//load a JSON file and run the `setup` function when it's done
+app.loader
+  .add("skeleton", "box_platium/skeleton.json")
+  .load(onAssetsLoaded);
+let skeleton = null
+function onAssetsLoaded(loader, res) {
+  // instantiate the spine animation
+  skeleton = new PIXI.spine.Spine(res.skeleton.spineData);
+  skeleton.skeleton.setToSetupPose();
+  skeleton.update(0);
+  skeleton.autoUpdate = false;
+
+  // create a container for the spine animation and add the animation to it
+  const skeletonCage = new PIXI.Container();
+  skeletonCage.addChild(skeleton);
+
+  // measure the spine animation and position it inside its container to align it to the origin
+  const localRect = skeleton.getLocalBounds();
+  skeleton.position.set(-localRect.x, -localRect.y);
+
+  // now we can scale, position and rotate the container as any other display object
+  const scale = Math.min(
+      (app.screen.width * 0.7) / skeletonCage.width,
+      (app.screen.height * 0.2) / skeletonCage.height,
+  );
+  skeletonCage.scale.set(scale, scale);
+  skeletonCage.position.set(
+      (app.screen.width - skeletonCage.width) * 0.5,
+      (app.screen.height - skeletonCage.height) * 0.7,
+  );
+
+  // add the container to the stage
+  app.stage.addChild(skeletonCage);
+
+  // once position and scaled, set the animation to play
+  skeleton.state.setAnimation(0, 'animation', true);
+
+  app.start();
+}
+
+app.ticker.add(() => {
+  // update the spine animation, only needed if skeleton.autoupdate is set to false
+  skeleton.update(0.01666666666667); // HARDCODED FRAMERATE!
+});
+
+</script>
+</body>
+</html>

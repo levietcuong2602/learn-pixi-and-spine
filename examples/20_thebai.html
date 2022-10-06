@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Make a sprite from a texture atlas</title>
+</head>
+<body>
+<script src="../pixi/pixi.min.js"></script>
+<script src="../pixi/pixi-spine.js"></script>
+<script>
+
+//Aliases
+const Application = PIXI.Application,
+    Container = PIXI.Container,
+    loader = PIXI.Loader.shared,
+    resources = PIXI.Loader.shared.resources,
+    TextureCache = PIXI.utils.TextureCache,
+    Sprite = PIXI.Sprite,
+    Rectangle = PIXI.Rectangle;
+
+//Create a Pixi Application
+const app = new Application({ 
+  autoResize: true,
+  resolution: devicePixelRatio 
+  }
+);
+app.stage.interactive = true;
+//Add the canvas that Pixi automatically created for you to the HTML document
+document.body.appendChild(app.view);
+// app.stop()
+
+//load a JSON file and run the `setup` function when it's done
+app.loader
+  .add("thebai", "the/thebai.json")
+  .load(onAssetsLoaded);
+let thebai = null
+function onAssetsLoaded(loader, res) {
+  // instantiate the spine animation
+  thebai = new PIXI.spine.Spine(res.thebai.spineData);
+  const scale = 0.3;
+
+  thebai.x = app.screen.width * 0.5;
+  thebai.y = app.screen.height * 0.5;
+  thebai.scale.x = thebai.scale.y = scale;
+  thebai.skeleton.setSkinByName('1')
+
+  // add the container to the stage
+  app.stage.addChild(thebai);
+
+  // once position and scaled, set the animation to play
+  const allAnimations = ['top10', 'top20', 'top30', 'top50', 'top100', 'top200'];
+  thebai.state.setAnimation(0, allAnimations[0], true);
+  let lastAnimation = allAnimations[0];
+
+  app.stage.on('pointerdown', () => {
+    animation = allAnimations[Math.floor(Math.random() * allAnimations.length)];
+    thebai.state.setAnimation(0, lastAnimation, false);
+    thebai.state.setAnimation(0, animation, true, 0);
+    
+    lastAnimation = animation
+  });
+  app.start();
+}
+
+
+</script>
+</body>
+</html>
